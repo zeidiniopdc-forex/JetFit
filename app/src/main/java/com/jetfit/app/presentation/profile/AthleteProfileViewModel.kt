@@ -35,11 +35,12 @@ class AthleteProfileViewModel(
         _uiState.update { it.copy(profile = profile, saved = false, error = null) }
     }
 
-    fun save() {
+    fun save(profile: AthleteProfile = _uiState.value.profile) {
+        updateProfile(profile)
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, saved = false, error = null) }
-            runCatching { repository.save(_uiState.value.profile) }
-                .onSuccess { _uiState.update { it.copy(isSaving = false, saved = true) } }
+            runCatching { repository.save(profile) }
+                .onSuccess { _uiState.update { it.copy(profile = profile, isSaving = false, saved = true) } }
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(isSaving = false, error = error.message ?: "ذخیره‌سازی ناموفق بود")
