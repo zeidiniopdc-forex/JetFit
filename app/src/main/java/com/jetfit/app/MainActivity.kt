@@ -3,45 +3,35 @@ package com.jetfit.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jetfit.app.core.ui.JetFitTheme
+import com.jetfit.app.data.AthleteProfileRepository
+import com.jetfit.app.presentation.profile.AthleteProfileScreen
+import com.jetfit.app.presentation.profile.AthleteProfileViewModel
+import com.jetfit.app.presentation.profile.AthleteProfileViewModelFactory
 
 class MainActivity : ComponentActivity() {
+    private val profileViewModel: AthleteProfileViewModel by viewModels {
+        AthleteProfileViewModelFactory(
+            AthleteProfileRepository((application as JetFitApplication).database.athleteProfileDao())
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { JetFitApp() }
-    }
-}
-
-@Composable
-private fun JetFitApp() {
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        MaterialTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("جت‌فیت", fontSize = 34.sp, color = MaterialTheme.colorScheme.primary)
-                    Text(
-                        "دستیار هوشمند تمرین و پیشرفت بدنسازی",
-                        modifier = Modifier.padding(top = 12.dp),
-                        textAlign = TextAlign.Center
+        setContent {
+            val state by profileViewModel.uiState.collectAsStateWithLifecycle()
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                JetFitTheme {
+                    AthleteProfileScreen(
+                        state = state,
+                        onProfileChange = profileViewModel::updateProfile,
+                        onSave = profileViewModel::save
                     )
                 }
             }
